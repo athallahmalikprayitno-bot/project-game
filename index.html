@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SMK RUNNER LEGEND</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      background: linear-gradient(135deg, #70e1f5, #ffd194);
+      height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-family: 'Poppins', sans-serif;
+    }
+
+    canvas {
+      background: url('BG.png') no-repeat center/cover;
+      border: 3px solid #000;
+      display: none;
+    }
+
+    /* Loading Screen */
+    #loadingScreen {
+      position: absolute;
+      inset: 0;
+      background: black;
+      color: white;
+      font-size: 30px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+    }
+
+    /* Main Menu */
+    #mainMenu {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(180deg, #2c3e50, #3498db);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      text-align: center;
+    }
+
+    #mainMenu h1 {
+      font-size: 60px;
+      margin-bottom: 40px;
+      animation: glow 2s ease-in-out infinite alternate;
+      letter-spacing: 2px;
+    }
+
+    @keyframes glow {
+      from { text-shadow: 0 0 10px #fff, 0 0 20px #0ff; }
+      to { text-shadow: 0 0 25px #ff0, 0 0 50px #f0f; }
+    }
+
+    .menu-button {
+      padding: 15px 50px;
+      margin: 10px;
+      font-size: 22px;
+      color: #fff;
+      background: linear-gradient(45deg, #16a085, #27ae60);
+      border: none;
+      border-radius: 50px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+    }
+
+    .menu-button:hover {
+      transform: scale(1.1);
+      background: linear-gradient(45deg, #1abc9c, #2ecc71);
+      box-shadow: 0 10px 25px rgba(0,0,0,0.4);
+    }
+
+    #highScore {
+      font-size: 20px;
+      margin-top: 25px;
+      color: #f1f1f1;
+    }
+
+    /* Option Screen */
+    #optionScreen {
+      position: absolute;
+      inset: 0;
+      background: rgba(0,0,0,0.9);
+      color: white;
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: left;
+      padding: 20px;
+    }
+
+    #optionScreen h2 {
+      font-size: 36px;
+      margin-bottom: 20px;
+      color: #00ffff;
+      text-shadow: 0 0 10px #00ffff;
+    }
+
+    /* Item-style selector */
+    .option-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      background: rgba(255,255,255,0.05);
+      border: 2px solid #00ffff;
+      border-radius: 15px;
+      padding: 15px 25px;
+      margin: 10px;
+      width: 250px;
+      text-align: center;
+      transition: all 0.3s;
+    }
+    .option-item:hover {
+      background: rgba(255,255,255,0.15);
+      transform: scale(1.05);
+    }
+
+    .option-item label {
+      font-size: 20px;
+      color: white;
+      margin-bottom: 8px;
+    }
+
+    .option-item select {
+      font-size: 18px;
+      padding: 8px 12px;
+      color: white;
+      background-color: black;
+      border: 2px solid #00ffff;
+      border-radius: 10px;
+      cursor: pointer;
+      outline: none;
+    }
+
+    #optionScreen button {
+      margin-top: 40px;
+      padding: 10px 30px;
+      background: #27ae60;
+      border: none;
+      border-radius: 30px;
+      color: white;
+      cursor: pointer;
+      font-size: 20px;
+    }
+
+    #overlay {
+      position: absolute;
+      top: 0; left: 0; width: 100%; height: 100%;
+      display: flex; justify-content: center; align-items: center;
+      flex-direction: column;
+      font-family: Arial, sans-serif; font-size: 40px; color: red;
+      text-shadow: 2px 2px 4px #000;
+      z-index: 10;
+      display: none;
+    }
+
+    #overlay p { font-size: 20px; color: white; margin-top: 10px; }
+  </style>
+</head>
+<body>
+  <canvas id="gameCanvas" width="800" height="400"></canvas>
+  
+  <div id="loadingScreen">
+    <h2>Loading...</h2>
+  </div>
+
+  <div id="mainMenu">
+    <h1>🏃‍♂️ SMK RUNNER LEGEND 🦖</h1>
+    <button class="menu-button" id="playBtn">Mulai Main</button>
+    <button class="menu-button" id="optionBtn">Pengaturan</button>
+    <div id="highScore"></div>
+  </div>
+
+  <div id="optionScreen">
+    <h2>Pengaturan ⚙️</h2>
+
+    <div class="option-item">
+      <label>🎵 Suara:</label>
+      <select id="soundOption">
+        <option value="on">On</option>
+        <option value="off">Off</option>
+      </select>
+    </div>
+
+    <div class="option-item">
+      <label>🔥 Kesulitan:</label>
+      <select id="difficulty">
+        <option value="easy">Easy</option>
+        <option value="normal" selected>Normal</option>
+        <option value="hard">Hard</option>
+        <option value="veryhard">Very Hard</option>
+      </select>
+    </div>
+
+    <button id="backBtn">Kembali</button>
+  </div>
+
+  <div id="overlay">
+    <h1>GAME OVER</h1>
+    <p>Tekan ENTER untuk mulai lagi<br>atau tekan P untuk kembali ke menu</p>
+  </div>
+
+  <script>
+    // ===== VARIABEL DASAR =====
+    const canvas = document.getElementById("gameCanvas");
+    const ctx = canvas.getContext("2d");
+    const mainMenu = document.getElementById("mainMenu");
+    const loadingScreen = document.getElementById("loadingScreen");
+    const optionScreen = document.getElementById("optionScreen");
+    const overlay = document.getElementById("overlay");
+    const highScoreDisplay = document.getElementById("highScore");
+    const difficultySelect = document.getElementById("difficulty");
+    const soundOption = document.getElementById("soundOption");
+
+    let highScore = localStorage.getItem("highScore") || 0;
+    highScoreDisplay.innerText = "High Score: " + highScore;
+
+    // ===== SUARA =====
+    const bgmList = ["Gone gone gone.mp3", "Tak me home.mp3", "Night Changes.mp3"];
+    let bgm = new Audio();
+    let jumpSound = new Audio("jump .mp3");
+    let gameOverSound = new Audio("game over.mp3");
+    bgm.loop = true;
+    bgm.volume = 0.5;
+    jumpSound.volume = 0.1;
+    gameOverSound.volume = 0.6;
+
+    function playRandomBGM() {
+      const randomIndex = Math.floor(Math.random() * bgmList.length);
+      bgm.src = bgmList[randomIndex];
+      bgm.play().catch(() => {});
+    }
+    function stopBGM() { bgm.pause(); bgm.currentTime = 0; }
+    function isSoundOn() { return soundOption.value === "on"; }
+
+    setTimeout(() => {
+      loadingScreen.style.display = "none";
+      mainMenu.style.display = "flex";
+    }, 3000);
+
+    document.getElementById("optionBtn").onclick = () => {
+      mainMenu.style.display = "none";
+      optionScreen.style.display = "flex";
+    };
+    document.getElementById("backBtn").onclick = () => {
+      optionScreen.style.display = "none";
+      mainMenu.style.display = "flex";
+    };
+    document.getElementById("playBtn").onclick = startGame;
+
+    // ===== GAMBAR =====
+    const images = {
+      run1: new Image(), run2: new Image(), run3: new Image(),
+      jump1: new Image(), jump2: new Image(), jump3: new Image(),
+      obstacle: new Image()
+    };
+    images.run1.src = "SMK_RUN_1.png";
+    images.run2.src = "SMK_RUN_2.png";
+    images.run3.src = "SMK_RUN_3.png";
+    images.jump1.src = "SMK_JUMP_1.png";
+    images.jump2.src = "SMK_JUMP_2.png";
+    images.jump3.src = "SMK_JUMP_3.png";
+    images.obstacle.src = "tongsampah.png";
+
+    // ===== GAME CORE =====
+    let player, obstacle, frame, score, gameOver, difficulty;
+
+    function initGame() {
+      difficulty = difficultySelect.value;
+      let baseSpeed = 6;
+      if (difficulty === "easy") baseSpeed = 5;
+      else if (difficulty === "hard") baseSpeed = 8;
+      else if (difficulty === "veryhard") baseSpeed = 10;
+
+      player = { x: 100, y: 300, width: 90, height: 90, vy: 0, gravity: 0.8, jumpPower: -12, grounded: true };
+      obstacle = { x: 800, y: 330, width: 75, height: 80, speed: baseSpeed };
+      frame = 0;
+      score = 0;
+      gameOver = false;
+    }
+
+    document.addEventListener("keydown", (e) => {
+      if (e.code === "Space" && !gameOver) {
+        if (player.grounded) {
+          player.vy = player.jumpPower;
+          player.grounded = false;
+          if (isSoundOn()) jumpSound.play();
+          update();
+        }
+      }
+
+      if (gameOver && e.code === "Enter") startGame();
+      if (gameOver && e.code === "KeyP") {
+        overlay.style.display = "none";
+        mainMenu.style.display = "flex";
+        canvas.style.display = "none";
+        stopBGM();
+      }
+    });
+
+    function startGame() {
+      mainMenu.style.display = "none";
+      canvas.style.display = "block";
+      overlay.style.display = "none";
+      initGame();
+      if (isSoundOn()) playRandomBGM();
+      animate();
+    }
+
+    function drawPlayer() {
+      let sprite = player.grounded
+        ? [images.run1, images.run2, images.run3][Math.floor(frame / 10) % 3]
+        : [images.jump1, images.jump2, images.jump3][Math.floor(frame / 10) % 3];
+      ctx.drawImage(sprite, player.x, player.y, player.width, player.height);
+    }
+
+    function drawObstacle() {
+      ctx.drawImage(images.obstacle, obstacle.x, obstacle.y, obstacle.width, obstacle.height);
+    }
+
+    function drawScore() {
+      ctx.fillStyle = "black";
+      ctx.font = "20px Arial";
+      ctx.fillText("Score: " + score, 10, 30);
+      ctx.fillText("High Score: " + highScore, 10, 55);
+    }
+
+    function update() {
+      frame++;
+      player.y += player.vy;
+      player.vy += player.gravity;
+      if (player.y > 300) { player.y = 300; player.vy = 0; player.grounded = true; }
+
+      obstacle.x -= obstacle.speed;
+      if (obstacle.x + obstacle.width < 0) {
+        obstacle.x = 800;
+        score++;
+        if (score % 100 === 0) obstacle.speed += 1;
+      }
+
+      const hitboxPlayer = {
+        left: player.x + 25, right: player.x + player.width - 25,
+        top: player.y + 25, bottom: player.y + player.height - 5
+      };
+      const hitboxObstacle = {
+        left: obstacle.x + 10, right: obstacle.x + obstacle.width - 10,
+        top: obstacle.y + 10, bottom: obstacle.y + obstacle.height
+      };
+
+      if (
+        hitboxPlayer.right > hitboxObstacle.left &&
+        hitboxPlayer.left < hitboxObstacle.right &&
+        hitboxPlayer.bottom > hitboxObstacle.top + 10
+      ) {
+        gameOver = true;
+        overlay.style.display = "flex";
+        if (isSoundOn()) { stopBGM(); gameOverSound.play(); }
+        if (score > highScore) {
+          highScore = score;
+          localStorage.setItem("highScore", highScore);
+        }
+      }
+    }
+
+    function animate() {
+      if (gameOver) return;
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      update();
+      drawPlayer();
+      drawObstacle();
+      drawScore();
+      requestAnimationFrame(animate);
+    }
+  </script>
+</body>
+</html>
